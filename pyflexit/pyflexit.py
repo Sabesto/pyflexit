@@ -95,6 +95,7 @@ class pyflexit(object):
         self._update_on_read = update_on_read
 
     def update(self):
+        ret = True
         try:
             result_input = self._conn.read_input_registers(
                 unit=self._slave,
@@ -106,6 +107,7 @@ class pyflexit(object):
                 count=len(self._holding_regs)).registers
         except AttributeError:
             # The unit does not reply reliably
+            ret = False
             print("Modbus read failed")
         else:
             for k in self._holding_regs:
@@ -151,6 +153,8 @@ class pyflexit(object):
             self._current_operation = 'Fan Only'
         else:
             self._current_operation = 'Off'
+
+        return ret
 
     def get_raw_input_register(self, name):
         """Get raw register value by name."""
