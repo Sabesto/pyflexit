@@ -7,7 +7,7 @@ setup(
     author='Sabesto',
     author_email='sabesto@gmail.com',
     url='https://github.com/Sabesto/pyflexit',
-    download_url='https://github.com/Sabesto/pyflexit/archive/0.1.tar.gz',
+    download_url='https://github.com/Sabesto/pyflexit/archive/0.2.tar.gz',
     keywords=['flexit', 'modbus', 'ci66', 'uni2', 'uni3', 'uni4'],
     classifiers=[],
 )
