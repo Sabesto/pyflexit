@@ -1,5 +1,3 @@
-#from pymodbus.client.sync import ModbusSerialClient as ModbusClient
-
 REGMAP_INPUT = {
     'GWYVer':                   {'addr':   0, 'value': 0},
     'CUHWType':                 {'addr':   1, 'value': 0},
@@ -76,6 +74,7 @@ REGMAP_HOLDING = {
     'FireSmokeMode':            {'addr': 21, 'value': 0}
 }
 
+
 class pyflexit(object):
     def __init__(self, conn, slave, update_on_read=False):
         self._conn = conn
@@ -93,6 +92,7 @@ class pyflexit(object):
         self._heating = None
         self._cooling = None
         self._alarm = False
+        self._update_on_read = update_on_read
 
     def update(self):
         try:
@@ -106,7 +106,7 @@ class pyflexit(object):
                 count=len(self._holding_regs)).registers
         except AttributeError:
             # The unit does not reply reliably
-            _LOGGER.warning('modbus read was unsuccessful for %s', self._name)
+            print("Modbus read failed")
         else:
             for k in self._holding_regs:
                 self._holding_regs[k]['value'] = \
@@ -120,7 +120,6 @@ class pyflexit(object):
         # Temperature directly after heat recovery and heater
         self._current_temp = \
             (self._input_regs['SupplyAirTemp']['value'] / 10.0)
-        
         self._current_fan = \
             (self._input_regs['ActualSetAirSpeed']['value'])
         # Hours since last filter reset
@@ -155,12 +154,16 @@ class pyflexit(object):
 
     def get_raw_input_register(self, name):
         """Get raw register value by name."""
+        if self._update_on_read:
+            self.update()
         return self._input_regs[name]
 
     def get_raw_holding_register(self, name):
         """Get raw register value by name."""
+        if self._update_on_read:
+            self.update()
         return self._holding_regs[name]
-    
+
     def set_raw_holding_register(self, name, value):
         """Write to register by name."""
         self._conn.write_register(
@@ -174,7 +177,7 @@ class pyflexit(object):
             address=(self._holding_regs['SetAirTemperature']['addr']),
             value=round(temp * 10.0))
 
-    def set_fan(self, fan):
+    def set_fan_speed(self, fan):
         self._conn.write_register(
             unit=self._slave,
             address=(self._holding_regs['SetAirSpeed']['addr']),
@@ -183,40 +186,69 @@ class pyflexit(object):
     @property
     def get_temp(self):
         """Get the current temperature."""
+        if self._update_on_read:
+            self.update()
         return self._current_temp
-     
+
     @property
     def get_target_temp(self):
         """Get target temperature."""
+        if self._update_on_read:
+            self.update()
         return self._target_temp
 
     @property
     def get_filter_hours(self):
         """Get the number of hours since filter reset."""
+        if self._update_on_read:
+            self.update()
         return self._filter_hours
 
     @property
     def get_operation(self):
         """Return the current mode of operation."""
+        if self._update_on_read:
+            self.update()
         return self._current_operation
 
     @property
     def get_fan_speed(self):
         """Return the current fan speed (0-4)."""
+        if self._update_on_read:
+            self.update()
         return self._current_fan
 
     @property
     def get_heat_recovery(self):
         """Return current heat recovery percentage."""
+        if self._update_on_read:
+            self.update()
         return self._heat_recovery
 
     @property
     def get_heating(self):
         """Return heater percentage."""
+        if self._update_on_read:
+            self.update()
         return self._heating
 
     @property
     def get_heater_enabled(self):
         """Return heater enabled."""
+        if self._update_on_read:
+            self.update()
         return self._heater_enabled
 
+    @property
+    def get_cooling(self):
+        """Cooling active percentage."""
+        if self._update_on_read:
+            self.update()
+        return self._cooling
+
+    @property
+    def get_filter_alarm(self):
+        """Change filter alarm."""
+        if self._update_on_read:
+            self.update()
+        return self._filter_alarm
