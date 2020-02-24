@@ -1,5 +1,57 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, List
+
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadDecoder, BinaryPayloadBuilder
+
+
+def registers_to_value(registers: List[int], data_type: str):
+    """Decode a list of registers to a value, given the specified data type.
+
+    The registers argument will typically be the .registers attribute of a
+    pymodbus response object.
+
+    Args:
+        registers (List[int]): List of register values
+        data_type (str): See the struct module for examples
+
+    Returns:
+        The decoded value
+    """
+    decoder = BinaryPayloadDecoder.fromRegisters(
+        registers, byteorder=Endian.Big)
+    if data_type == 'f':
+        return decoder.decode_32bit_float()
+    if data_type == 'I':
+        return decoder.decode_32bit_uint()
+    if data_type == 'H':
+        return decoder.decode_16bit_int()
+    raise ValueError(f"Unknown data type: {data_type}")
+
+
+def value_to_registers(value, data_type: str) -> List[int]:
+    """Encode a value into a list of registers.
+
+    The resulting list of registers can be written to an address:
+    write_registers(address, registers, unit=1)
+
+    Args:
+        value: The value to be encoded
+        data_type (str): The data type, see struct module for examples
+
+    Returns:
+        The list of registers
+    """
+    encoder = BinaryPayloadBuilder(byteorder=Endian.Big)
+    if data_type == 'f':
+        encoder.add_32bit_float(value)
+    elif data_type == 'I':
+        encoder.add_32bit_uint(value)
+    elif data_type == 'H':
+        encoder.add_16bit_int(value)
+    else:
+        ValueError(f"Unknown data type: {data_type}")
+    return encoder.to_registers()
 
 
 class HomeAssistantAPI(ABC):
