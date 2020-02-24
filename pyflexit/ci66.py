@@ -75,7 +75,7 @@ REGMAP_HOLDING = {
 }
 
 
-class pyflexit(object):
+class CI66:
     def __init__(self, conn, slave, update_on_read=False):
         self._conn = conn
         self._input_regs = REGMAP_INPUT
