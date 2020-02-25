@@ -1,5 +1,6 @@
-from pyflexit.common import HomeAssistantAPI
 from typing import Tuple
+
+from pyflexit.common import HomeAssistantAPI
 
 
 class Nordic(HomeAssistantAPI):
