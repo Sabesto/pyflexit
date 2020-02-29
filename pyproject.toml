@@ -8,8 +8,7 @@ repository = "https://github.com/Sabesto/pyflexit"
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
-pymodbus = "^2.3.0"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
