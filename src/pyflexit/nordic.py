@@ -1,66 +1,141 @@
-from typing import Tuple
+from enum import Enum
 
-from pyflexit.common import HomeAssistantAPI
+from pyflexit.common import CommonAPI, Register, Regtype
+
+REGISTERS = {
+    "OutsideAirTemp": Register(Regtype.INPUT, 1, "f"),
+    "SupplyAirTemp": Register(Regtype.INPUT, 5, "f"),
+    "ExtractAirTemp": Register(Regtype.INPUT, 9, "f"),
+    "ExhaustAirTemp": Register(Regtype.INPUT, 13, "f"),
+    "SetpointAwaySupplyAirTemp": Register(Regtype.HOLDING, 1163, "f"),
+    "SetpointHomeSupplyAirTemp": Register(Regtype.HOLDING, 1155, "f"),
+
+    "HeatExchangerSpeed": Register(Regtype.HOLDING, 1, "f"),
+    "ElectricAirHeaterPower": Register(Regtype.HOLDING, 13, "f"),
+
+    "VentMode": Register(Regtype.INPUT, 3034, "H"),
+    "SetVentMode": Register(Regtype.HOLDING, 2013, "H"),
+    "ExhaustFanSpeed": Register(Regtype.HOLDING, 9, "f"),
+    "SupplyFanSpeed": Register(Regtype.HOLDING, 5, "f"),
+
+    "FilterRunTime": Register(Regtype.HOLDING, 1271, "f"),
+    "FilterRemainingTime": Register(Regtype.HOLDING, 1269, "f"),
+
+    "RoomHumidity1": Register(Regtype.INPUT, 1001, "f"),
+    "RoomHumidity2": Register(Regtype.INPUT, 1003, "f"),
+    "RoomHumidity3": Register(Regtype.INPUT, 1005, "f"),
+    "RoomAirQuality": Register(Regtype.INPUT, 1007, "f"),
+}
 
 
-class Nordic(HomeAssistantAPI):
+class Nordic(CommonAPI):
     """This class supports the Flexit Nordic models (S2, S3, S4, CL3)."""
 
-    def __init__(self, client, unit: int):
-        self._client = client
-        self._unit = unit
+    class VentMode(Enum):
+        Off = 1
+        Away = 2
+        Home = 3
+        High = 4
 
-    @staticmethod
-    def update() -> bool:
-        """Just for backwards compatibility with the CI66 implementation"""
-        return True
+    def __init__(self, client, unit: int):
+        super().__init__(client, unit)
+        self._REGISTERS = REGISTERS
 
     @property
-    def current_temperature(self) -> float:
-        """HomeAssistantAPI: Get measured temperature for supply air.
-        """
-        raise NotImplementedError
-
-    def set_temperature(self, temperature: float) -> None:
-        """HomeAssistantAPI: Set target temperature for supply air
+    def air_temp_setpoint(self):
+        """Get the temperature setpoint for supply air.
 
         The Nordic series have two separate target temperatures, one for
-        "Home" and one for "Away". This method uses the current operating
-        mode to select which target temperature to set. If the operating mode
-        is neither "Home" nor "Away", setting the target temperature is thus
-        not possible, and we raise an exception.
-        """
-        if self.fan_mode == "Home":
-            self.set_home_temperature(temperature)
-        elif self.fan_mode == "Away":
-            self.set_away_temperature(temperature)
+        "Home" and one for "Away". If the current operating mode is "Away",
+        the Away-setpoint is returned. Otherwise, the Home-setpoint is
+        returned."""
+        if self.vent_mode == self.VentMode.Away.name:
+            return self.away_temp_setpoint
         else:
-            raise RuntimeError(f"Cannot set target temperature in this "
-                               f"operating mode: {self.fan_mode}")
+            return self.home_temp_setpoint
+
+    @air_temp_setpoint.setter
+    def air_temp_setpoint(self, temperature: float) -> None:
+        """Set the temperature setpoint for supply air.
+
+        The Nordic series have two separate target temperatures, one for
+        "Home" and one for "Away". If the current operating mode is "Away",
+        the Away-setpoint is changed. Otherwise, the Home-setpoint is
+        changed.
+        """
+        if self.vent_mode == self.VentMode.Away.name:
+            self.away_temp_setpoint = temperature
+        else:
+            self.home_temp_setpoint = temperature
 
     @property
-    def fan_modes(self) -> Tuple[str, ...]:
-        """Returns a tuple of strings with the valid fan modes"""
-        return ("Off", "Away", "Home", "High", "Fume hood", "Fireplace",
-                "Temporary high")
+    def home_temp_setpoint(self) -> float:
+        """Get target temperature for supply air when in Home-mode"""
+        return self._get_register_value("SetpointHomeSupplyAirTemp")
 
-    @property
-    def fan_mode(self) -> str:
-        """Return a string with the current fan mode."""
-        raise NotImplementedError
-
-    def set_fan_mode(self, fan_mode: str) -> None:
-        """Set new fan mode. The input string must be one of the first four
-        values returned by self.fan_modes"""
-        if fan_mode not in self.fan_modes[:4]:
-            raise ValueError(f"Illegal fan mode: {fan_mode}. Supported "
-                             f"values: {self.fan_modes[:4]}")
-        raise NotImplementedError
-
-    def set_home_temperature(self, value: float) -> None:
+    @home_temp_setpoint.setter
+    def home_temp_setpoint(self, value: float) -> None:
         """Set target temperature for supply air when in Home-mode"""
-        raise NotImplementedError
+        self._write_register_value("SetpointHomeSupplyAirTemp", value)
 
-    def set_away_temperature(self, value: float) -> None:
+    @property
+    def away_temp_setpoint(self) -> float:
+        """Get target temperature for supply air when in Away-mode"""
+        return self._get_register_value("SetpointAwaySupplyAirTemp")
+
+    @away_temp_setpoint.setter
+    def away_temp_setpoint(self, value: float) -> None:
         """Set target temperature for supply air when in Away-mode"""
-        raise NotImplementedError
+        self._write_register_value("SetpointAwaySupplyAirTemp", value)
+
+    @property
+    def exhaust_air_temp(self) -> float:
+        """Get exhaust air temperature"""
+        return self._get_register_value("ExhaustAirTemp")
+
+    @property
+    def exhaust_fan_speed(self) -> float:
+        """Get speed of exhaust fan: 0-100%"""
+        return self._get_register_value("ExhaustFanSpeed")
+
+    @property
+    def supply_fan_speed(self) -> float:
+        """Get speed of supply fan: 0-100%"""
+        return self._get_register_value("SupplyFanSpeed")
+
+    @property
+    def filter_remaining_time(self) -> int:
+        """Time until filter change (hours)"""
+        return self._get_register_value("FilterRemainingTime")
+
+    @property
+    def room_humidity_1(self) -> float:
+        """Get value of humidity sensor 1.
+
+        This is only available if you have a CI75 adapter and a CI77 sensor.
+        """
+        return self._get_register_value("RoomHumidity1")
+
+    @property
+    def room_humidity_2(self) -> float:
+        """Get value of humidity sensor 1.
+
+        This is only available if you have a CI75 adapter and a CI77 sensor.
+        """
+        return self._get_register_value("RoomHumidity2")
+
+    @property
+    def room_humidity_3(self) -> float:
+        """Get value of humidity sensor 1.
+
+        This is only available if you have a CI75 adapter and a CI77 sensor.
+        """
+        return self._get_register_value("RoomHumidity3")
+
+    @property
+    def room_airquality(self) -> float:
+        """Get value of humidity sensor 1.
+
+        This is only available if you have a CI75 adapter and a CI76 sensor.
+        """
+        return self._get_register_value("RoomAirQuality")
