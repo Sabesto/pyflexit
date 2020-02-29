@@ -1,111 +1,130 @@
+import math
 import struct
-from abc import ABC, abstractmethod
-from typing import Iterable, Tuple
+import warnings
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Dict, Tuple
+
+from pyflexit.utils import registers_to_values, value_to_registers
 
 
-def zero_pad(data_format: str) -> str:
-    """Data formats smaller than 16 bits must be zero-padded
-
-    Args:
-        data_format (str): A single data format character, see struct module
-
-    Returns:
-        A possible zero-padded data format string
-
-    Examples:
-        A float doesn't need zero-padding
-        >>> zero_pad("f")
-        'f'
-
-        A boolean is only one byte, and must be zero-padded
-        >>> zero_pad("?")
-        'x?'
-    """
-    if struct.calcsize(data_format) < 2:
-        return f"x{data_format}"
-    return data_format
+class Regtype(Enum):
+    INPUT = 0
+    HOLDING = 1
 
 
-def registers_to_values(registers: Iterable[int], data_types: str):
-    """Decode a list of registers to value(s), given the specified data type(s).
-
-    The registers argument will typically be the .registers attribute of a
-    pymodbus response object.
-
-    Args:
-        registers (List[int]): List of register values
-        data_types (str): See the struct module for examples
-
-    Returns:
-        A tuple with the decoded value(s)
-
-    Examples:
-        Decoding a 32-bit float from two registers:
-        >>> registers_to_values((17562, 20480), 'f')
-        (1234.5,)
-
-        Decoding multiple values of different type from multiple registers:
-        >>> registers_to_values([17562, 20480, 1, 2, 1, 17833, 47104], "fi?f")
-        (1234.5, 65538, True, 5431.0)
-    """
-    binary_format = "".join(zero_pad(data_type) for data_type in data_types)
-    byte_string = b''.join(struct.pack('>H', r) for r in registers)
-    return struct.unpack(f">{binary_format}", byte_string)
-
-
-def value_to_registers(value, data_type: str) -> Tuple:
-    """Encode a value into a list of registers.
-
-    The resulting list of registers can be written to an address:
-    write_registers(address, registers, unit=1)
-
-    Args:
-        value: The value to be encoded
-        data_type (str): The data type, see struct module for examples
-
-    Returns:
-        A tuple of registers
-
-    Example:
-        Encoding a 32-bit float into two registers:
-        >>> value_to_registers(1234.5, 'f')
-        (17562, 20480)
-    """
-    binary_format = zero_pad(data_type)
-    bs = struct.pack(f">{binary_format}", value)
-    return struct.unpack(f">{struct.calcsize(binary_format) // 2}H", bs)
-
-
-class HomeAssistantAPI(ABC):
-    """This is an abstract base class to be inherited by the different Flexit
-    model classes. We define an API that will be used by the Home Assistant
-    climate component. This ensures Home Assistant compatibility across
-    different Flexit models."""
+@dataclass
+class Register:
+    regtype: Regtype
+    addr: int
+    data_type: str
+    post_read: Callable = lambda x: x
+    pre_write: Callable = lambda x: x
 
     @property
-    @abstractmethod
-    def current_temperature(self) -> float:
-        """Return current measured temperature (for supply air)"""
+    def count(self) -> int:
+        return math.ceil(struct.calcsize(self.data_type) / 2)
+
+
+class CommonAPI:
+    """This is a base class to be inherited by the different Flexit model
+    classes. This ensures compatibility across different Flexit models.
+    """
+
+    class VentMode(Enum):
+        # Each subclass must define their own ventilation modes
         pass
 
-    @abstractmethod
-    def set_temperature(self, temperature: float) -> None:
-        """Set target temperature (for supply air)"""
-        pass
+    def __init__(self, client, unit: int):
+        self._client = client
+        self._unit = unit
+        self._REGISTERS: Dict[str, Register] = dict()
 
     @property
-    @abstractmethod
-    def fan_modes(self) -> Tuple[str, ...]:
-        """Return a tuple of strings with names of supported fan modes"""
-        pass
+    def outside_air_temp(self) -> float:
+        return self._get_register_value("OutsideAirTemp")
 
     @property
-    @abstractmethod
-    def fan_mode(self) -> str:
-        """Return current fan mode as a string"""
-        pass
+    def extract_air_temp(self) -> float:
+        return self._get_register_value("ExtractAirTemp")
 
-    @abstractmethod
-    def set_fan_mode(self, fan_mode: str) -> None:
-        """Set new fan mode. Input must be one of self.fan_modes"""
-        pass
+    @property
+    def supply_air_temp(self) -> float:
+        return self._get_register_value("SupplyAirTemp")
+
+    @property
+    def air_temp_setpoint(self) -> float:
+        """Get the temperature setpoint for supply air"""
+        return self._get_register_value("SetpointSupplyAirTemp")
+
+    @air_temp_setpoint.setter
+    def air_temp_setpoint(self, temperature) -> None:
+        """Set the temperature setpoint for supply air"""
+        self._write_register_value("SetpointSupplyAirTemp", temperature)
+
+    @property
+    def vent_modes(self) -> Tuple[str, ...]:
+        """Returns a tuple of strings with all the valid ventilation modes"""
+        return tuple(self.VentMode.__members__.keys())
+
+    @property
+    def vent_mode(self) -> str:
+        """Return a string with the current fan mode."""
+        register_value = self._get_register_value("SetVentMode")
+        return self.VentMode(register_value).name
+
+    @vent_mode.setter
+    def vent_mode(self, vent_mode: str) -> None:
+        """Set new ventilation mode.
+        The input string must be one the values returned by self.fan_modes
+
+        Args:
+            vent_mode (str): The ventilation mode to change to
+        """
+        if vent_mode not in self.VentMode.__members__:
+            raise ValueError(f"Illegal ventilation mode: {vent_mode}. "
+                             f"Supported values: {self.vent_modes}")
+        value = self.VentMode.__members__[vent_mode].value
+        self._write_register_value("SetVentMode", value)
+
+    @property
+    def heat_exchanger_speed(self) -> float:
+        return self._get_register_value("HeatExchangerSpeed")
+
+    @property
+    def electric_heater_power(self) -> float:
+        return self._get_register_value("ElectricAirHeaterPower")
+
+    @property
+    def filter_runtime(self) -> float:
+        return self._get_register_value("FilterRunTime")
+
+    def _get_register_value(self, register_name: str):
+        """Get value from modbus register(s)"""
+        if register_name not in self._REGISTERS.keys():
+            raise ValueError(f"Unknown register name: {register_name}")
+        register = self._REGISTERS[register_name]
+        modbus_read_func = {
+            Regtype.INPUT: self._client.read_input_registers,
+            Regtype.HOLDING: self._client.read_holding_registers
+        }
+        response = modbus_read_func[register.regtype](
+            unit=self._unit,
+            address=register.addr,
+            count=register.count)
+        if response.isError():
+            warnings.warn(f"Value not defined")
+            return None
+        value = registers_to_values(response.registers, register.data_type)[0]
+        return register.post_read(value)
+
+    def _write_register_value(self, register_name: str, value) -> None:
+        """Write value to modbus register(s)"""
+        if register_name not in self._REGISTERS.keys():
+            raise ValueError(f"Unknown register name: {register_name}")
+        register = self._REGISTERS[register_name]
+        value = register.pre_write(value)
+        data = value_to_registers(value, register.data_type)
+        self._client.write_registers(unit=self._unit,
+                                     address=register.addr,
+                                     values=data)
