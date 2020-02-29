@@ -1,21 +1,12 @@
-import pytest
-
-from pyflexit import common
+from pyflexit.common import Register, Regtype
 
 
-def test_value_to_registers():
-    regs = common.value_to_registers(-1.2, "f")
-    assert regs == (49049, 39322)
+def test_reg_count():
+    register = Register(data_type="f", addr=1, regtype=Regtype.INPUT)
+    assert register.count == 2
 
-    regs = common.value_to_registers(10, "h")
-    assert regs == (10,)
+    register = Register(data_type="h", addr=1, regtype=Regtype.INPUT)
+    assert register.count == 1
 
-
-def test_registers_to_value():
-    regs = (49049, 39322)
-    value = common.registers_to_values(regs, "f")[0]
-    assert value == pytest.approx(-1.2)
-
-    regs = [17562, 20480, 1, 2, 1, 17833, 47104]
-    values = common.registers_to_values(regs, "fi?f")
-    assert values == (1234.5, 65538, True, 5431.0)
+    register = Register(data_type="?", addr=1, regtype=Regtype.INPUT)
+    assert register.count == 1
