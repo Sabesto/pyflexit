@@ -17,6 +17,8 @@ flake8 = "*"
 isort = "*"
 mypy = "*"
 tox = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
 
 [build-system]
 requires = ["poetry>=0.12"]
