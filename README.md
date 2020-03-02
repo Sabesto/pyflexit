@@ -2,7 +2,7 @@
 
 Supported modbus interfaces:
 * Flexit K2, UNI 2, UNI 3 and UNI 4: Via the CI66 modbus adapter
-* Nordic S2, S3, S4, CL3
+* Nordic S2, S3, S4, CL2, CL3, CL4
 * EcoNordic W4, WH4
 
 Simple helper library for controlling Flexit A/C units
