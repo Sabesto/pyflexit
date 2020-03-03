@@ -200,7 +200,7 @@ class Nordic(CommonAPI):
         and will be a number between 0 and 1.
 
         Example:
-            >>> print(f"Efficiency: {100 * nordic_unit.efficiency:2.1f}%")
+            >>> print(f"Efficiency: {nordic_unit.efficiency:2.1%}")
             Efficiency: 76.9%
         """
         eta = (self.extract_air_temp - self.exhaust_air_temp) / \
