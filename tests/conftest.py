@@ -20,7 +20,8 @@ def add_doctest_fixtures(doctest_namespace):
     ci66_client.inject_value(ci66_unit._REGISTERS["SupplyAirTemp"], 20.4)
     ci66_client.inject_value(ci66_unit._REGISTERS["SetVentMode"], 2)
     ci66_client.inject_value(ci66_unit._REGISTERS["HeatExchangerSpeed"], 100)
-    ci66_client.inject_value(ci66_unit._REGISTERS["ElectricAirHeaterPower"], 42)
+    ci66_client.inject_value(ci66_unit._REGISTERS["ElectricAirHeaterPower"],
+                             42)
     ci66_client.inject_value(ci66_unit._REGISTERS["FilterRunTime"], 1344)
 
     # Create a fake modbus client and a Nordic object
@@ -36,7 +37,6 @@ def add_doctest_fixtures(doctest_namespace):
     doctest_namespace["unit"] = ci66_unit
     doctest_namespace["ci66_unit"] = ci66_unit
     doctest_namespace["nordic_unit"] = nordic_unit
-
 
 
 class ModbusResponse:
