@@ -10,8 +10,8 @@ def test_ci66(modbus_client, common_api):
     unit.vent_mode = "Max"
     assert unit.vent_mode == "Max"
 
-    unit.air_temp_setpoint = 21
-    assert unit.air_temp_setpoint == 21
+    unit.air_temp_setpoint = 21.5
+    assert unit.air_temp_setpoint == 21.5
 
     modbus_client.inject_value(unit._REGISTERS["HeatingEnabled"], True)
     assert unit.heating_enabled is True

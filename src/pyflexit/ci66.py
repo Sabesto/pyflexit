@@ -25,8 +25,26 @@ REGISTERS = {
 
 
 class CI66(CommonAPI):
-    """This class supports the Flexit CI66 modbus adapter, which can be
-    retrofitted to the K2, UNI 2, UNI 3 and UNI 4."""
+    """This class supports the Flexit CI66 modbus adapter, which is
+    compatible with the K2, UNI 2, UNI 3 and UNI 4 aggregates.
+
+    Example:
+        This is an example for a Flexit CI66 adapter::
+
+            import pyflexit
+            from pymodbus.client.sync import ModbusSerialClient
+
+            client = ModbusSerialClient(
+                method='rtu',
+                port='/dev/ttyUSB0',
+                stopbits=1,
+                bytesize=8,
+                parity='E',
+                baudrate=56000,
+                timeout=2)
+            client.connect()
+            ci66_unit = pyflexit.aggregate(client, unit=21, model="CI66"))
+    """
 
     class VentMode(Enum):
         Off = 0
@@ -40,8 +58,19 @@ class CI66(CommonAPI):
 
     @property
     def heating_enabled(self) -> bool:
+        """Is the heating module enabled?
+
+        Returns:
+            ``True`` or ``False`` depending on the status.
+        """
         return self._get_register_value("HeatingEnabled")
 
     @property
     def replace_filter_alarm(self) -> bool:
+        """
+        Status of filter change alarm
+
+        Returns:
+            ``True`` when it's time to change the filter, otherwise ``False``.
+        """
         return self._get_register_value("ReplaceFilterAlarm")
