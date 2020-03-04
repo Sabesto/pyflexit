@@ -1,0 +1,8 @@
+# This file is since ReadTheDocs doesn't fully support Poetry.
+# We upgrade Sphinx to the latest version and also install our own package
+# such that autodoc will work.
+#
+# sphinx_autodoc_typehints==1.8.0
+
+sphinx==2.4.3
+.
