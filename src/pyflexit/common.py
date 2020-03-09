@@ -170,7 +170,12 @@ class CommonAPI:
             >>> unit.electric_heater_power
             42
         """
-        return self._get_register_value("ElectricAirHeaterPower")
+        value = self._get_register_value("ElectricAirHeaterPower")
+        if value is None:
+            # If the heater in the Nordic series is switched off,
+            # this register doesn't exists.
+            return 0
+        return value
 
     @property
     def filter_runtime(self) -> float:

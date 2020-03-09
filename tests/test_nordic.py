@@ -1,6 +1,7 @@
 import pytest
 
 import pyflexit
+from pyflexit.common import Regtype
 
 
 def test_nordic(modbus_client, common_api):
@@ -45,3 +46,6 @@ def test_nordic(modbus_client, common_api):
 
     modbus_client.inject_value(unit._REGISTERS["RoomAirQuality"], 500)
     assert unit.room_airquality == pytest.approx(500)
+
+    modbus_client.REGISTERS[(Regtype.HOLDING, 13)] = None
+    assert unit.electric_heater_power == 0
