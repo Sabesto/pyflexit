@@ -48,4 +48,5 @@ def test_nordic(modbus_client, common_api):
     assert unit.room_airquality == pytest.approx(500)
 
     modbus_client.REGISTERS[(Regtype.HOLDING, 13)] = None
-    assert unit.electric_heater_power == 0
+    with pytest.warns(UserWarning):
+        assert unit.electric_heater_power == 0
