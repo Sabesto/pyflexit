@@ -43,7 +43,7 @@ class CI66(CommonAPI):
                 baudrate=56000,
                 timeout=2)
             client.connect()
-            ci66_unit = pyflexit.aggregate(client, unit=21, model="CI66"))
+            ci66_unit = pyflexit.aggregate(client, unit=21, model="CI66")
     """
 
     class VentMode(Enum):

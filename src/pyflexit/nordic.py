@@ -48,7 +48,7 @@ class Nordic(CommonAPI):
                 baudrate=9600,
                 timeout=2)
             client.connect()
-            nordic_unit = pyflexit.aggregate(client, unit=1, model="Nordic"))
+            nordic_unit = pyflexit.aggregate(client, unit=1, model="Nordic")
     """
 
     class VentMode(Enum):
