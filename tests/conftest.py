@@ -57,21 +57,26 @@ class ModbusClient:
     def inject_value(self, register: Register, value):
         """Store a value in a register, using specified data type"""
         key = (register.regtype, register.addr)
-        value = register.pre_write(value)
-        self.REGISTERS[key] = value_to_registers(value, register.data_type)
+        if value is None:
+            self.REGISTERS[key] = None
+        else:
+            value = register.pre_write(value)
+            self.REGISTERS[key] = value_to_registers(value, register.data_type)
 
     def _read_register(self, key):
         """Get register values from the internal register storage"""
         registers = self.REGISTERS[key]
+        if registers is None:
+            return ModbusResponse([], error=True)
         return ModbusResponse(registers)
 
-    def read_input_registers(self, unit, address, count) -> ModbusResponse:
+    def read_input_registers(self, address, count, unit) -> ModbusResponse:
         """Emulate the function from pymodbus.client"""
         if address == 0:
             return ModbusResponse([], error=True)
         return self._read_register((Regtype.INPUT, address))
 
-    def read_holding_registers(self, unit, address, count) -> \
+    def read_holding_registers(self, address, count, unit) -> \
             ModbusResponse:
         """Emulate the function from pymodbus.client"""
         return self._read_register((Regtype.HOLDING, address))
