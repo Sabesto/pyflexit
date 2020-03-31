@@ -19,8 +19,9 @@ def autodetect_flexit_model(client, unit):
     response = client.read_holding_registers(9070, 20, unit=unit)
     if response.isError():
         return "CI66"
-    model_string = b''.join(struct.pack('>H', r) for r in
-                            response.registers).decode('UTF-8')
+    model_string = b"".join(struct.pack(">H", r) for r in response.registers).decode(
+        "UTF-8"
+    )
     # For (Eco)Nordic, the model string will look like:
     # MDL:ASN= POS3.6715/414;HW=48.46.50;
     # The digit after the / is 4 in Nordic series, 5 in EcoNordic series

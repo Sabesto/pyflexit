@@ -3,24 +3,40 @@ from enum import Enum
 from pyflexit.common import CommonAPI, Register, Regtype
 
 REGISTERS = {
-    "OutsideAirTemp": Register(Regtype.INPUT, 12, "h",
-                               pre_write=lambda x: int(x*10),
-                               post_read=lambda x: x/10),
-    "SupplyAirTemp": Register(Regtype.INPUT, 10, "h",
-                              pre_write=lambda x: int(x*10),
-                              post_read=lambda x: x/10),
-    "ExtractAirTemp": Register(Regtype.INPUT, 11, "h",
-                               pre_write=lambda x: int(x*10),
-                               post_read=lambda x: x/10),
-    "SetpointSupplyAirTemp": Register(Regtype.HOLDING, 9, "h",
-                                      pre_write=lambda x: int(x*10),
-                                      post_read=lambda x: x/10),
+    "OutsideAirTemp": Register(
+        Regtype.INPUT,
+        12,
+        "h",
+        pre_write=lambda x: int(x * 10),
+        post_read=lambda x: x / 10,
+    ),
+    "SupplyAirTemp": Register(
+        Regtype.INPUT,
+        10,
+        "h",
+        pre_write=lambda x: int(x * 10),
+        post_read=lambda x: x / 10,
+    ),
+    "ExtractAirTemp": Register(
+        Regtype.INPUT,
+        11,
+        "h",
+        pre_write=lambda x: int(x * 10),
+        post_read=lambda x: x / 10,
+    ),
+    "SetpointSupplyAirTemp": Register(
+        Regtype.HOLDING,
+        9,
+        "h",
+        pre_write=lambda x: int(x * 10),
+        post_read=lambda x: x / 10,
+    ),
     "HeatExchangerSpeed": Register(Regtype.INPUT, 15, "h"),
     "ElectricAirHeaterPower": Register(Regtype.INPUT, 16, "h"),
     "SetVentMode": Register(Regtype.HOLDING, 18, "h"),
     "FilterRunTime": Register(Regtype.INPUT, 9, "H"),
     "HeatingEnabled": Register(Regtype.INPUT, 29, "?"),
-    "ReplaceFilterAlarm": Register(Regtype.INPUT, 28, "?")
+    "ReplaceFilterAlarm": Register(Regtype.INPUT, 28, "?"),
 }
 
 

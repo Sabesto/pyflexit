@@ -36,6 +36,7 @@ class CommonAPI:
     class VentMode(Enum):
         """Each subclass must define their own ventilation modes with the
         proper names and values"""
+
         pass
 
     def __init__(self, client, unit: int):
@@ -145,8 +146,10 @@ class CommonAPI:
             vent_mode (str): The ventilation mode to change to
         """
         if vent_mode not in self.VentMode.__members__:
-            raise ValueError(f"Illegal ventilation mode: {vent_mode}. "
-                             f"Supported values: {self.vent_modes}")
+            raise ValueError(
+                f"Illegal ventilation mode: {vent_mode}. "
+                f"Supported values: {self.vent_modes}"
+            )
         value = self.VentMode.__members__[vent_mode].value
         self._write_register_value("SetVentMode", value)
 
@@ -194,12 +197,11 @@ class CommonAPI:
         register = self._REGISTERS[register_name]
         modbus_read_func = {
             Regtype.INPUT: self._client.read_input_registers,
-            Regtype.HOLDING: self._client.read_holding_registers
+            Regtype.HOLDING: self._client.read_holding_registers,
         }
         response = modbus_read_func[register.regtype](
-            unit=self._unit,
-            address=register.addr,
-            count=register.count)
+            unit=self._unit, address=register.addr, count=register.count
+        )
         if response.isError():
             warnings.warn(f"Value not defined")
             return None
@@ -213,6 +215,6 @@ class CommonAPI:
         register = self._REGISTERS[register_name]
         value = register.pre_write(value)
         data = value_to_registers(value, register.data_type)
-        self._client.write_registers(unit=self._unit,
-                                     address=register.addr,
-                                     values=data)
+        self._client.write_registers(
+            unit=self._unit, address=register.addr, values=data
+        )

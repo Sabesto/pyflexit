@@ -48,7 +48,7 @@ def registers_to_values(registers: Iterable[int], data_types: str):
         (1234.5, 65538, True, 5431.0)
     """
     binary_format = "".join(zero_pad(data_type) for data_type in data_types)
-    byte_string = b''.join(struct.pack('>H', r) for r in registers)
+    byte_string = b"".join(struct.pack(">H", r) for r in registers)
     return struct.unpack(f">{binary_format}", byte_string)
 
 

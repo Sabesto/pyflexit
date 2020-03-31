@@ -20,8 +20,7 @@ def add_doctest_fixtures(doctest_namespace):
     ci66_client.inject_value(ci66_unit._REGISTERS["SupplyAirTemp"], 20.4)
     ci66_client.inject_value(ci66_unit._REGISTERS["SetVentMode"], 2)
     ci66_client.inject_value(ci66_unit._REGISTERS["HeatExchangerSpeed"], 100)
-    ci66_client.inject_value(ci66_unit._REGISTERS["ElectricAirHeaterPower"],
-                             42)
+    ci66_client.inject_value(ci66_unit._REGISTERS["ElectricAirHeaterPower"], 42)
     ci66_client.inject_value(ci66_unit._REGISTERS["FilterRunTime"], 1344)
 
     # Create a fake modbus client and a Nordic object
@@ -76,8 +75,7 @@ class ModbusClient:
             return ModbusResponse([], error=True)
         return self._read_register((Regtype.INPUT, address))
 
-    def read_holding_registers(self, address, count, unit) -> \
-            ModbusResponse:
+    def read_holding_registers(self, address, count, unit) -> ModbusResponse:
         """Emulate the function from pymodbus.client"""
         return self._read_register((Regtype.HOLDING, address))
 

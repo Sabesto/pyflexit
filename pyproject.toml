@@ -19,6 +19,8 @@ mypy = "*"
 tox = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
+black = "^19.10b0"
+pydocstyle = "^5.0.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

@@ -9,18 +9,14 @@ REGISTERS = {
     "ExhaustAirTemp": Register(Regtype.INPUT, 13, "f"),
     "SetpointAwaySupplyAirTemp": Register(Regtype.HOLDING, 1163, "f"),
     "SetpointHomeSupplyAirTemp": Register(Regtype.HOLDING, 1155, "f"),
-
     "HeatExchangerSpeed": Register(Regtype.HOLDING, 1, "f"),
     "ElectricAirHeaterPower": Register(Regtype.HOLDING, 13, "f"),
-
     "VentMode": Register(Regtype.INPUT, 3034, "H"),
     "SetVentMode": Register(Regtype.HOLDING, 2013, "H"),
     "ExhaustFanSpeed": Register(Regtype.HOLDING, 9, "f"),
     "SupplyFanSpeed": Register(Regtype.HOLDING, 5, "f"),
-
     "FilterRunTime": Register(Regtype.HOLDING, 1271, "f"),
     "FilterRemainingTime": Register(Regtype.HOLDING, 1269, "f"),
-
     "RoomHumidity1": Register(Regtype.INPUT, 1001, "f"),
     "RoomHumidity2": Register(Regtype.INPUT, 1003, "f"),
     "RoomHumidity3": Register(Regtype.INPUT, 1005, "f"),
@@ -53,6 +49,7 @@ class Nordic(CommonAPI):
 
     class VentMode(Enum):
         """For the Nordic series, these ventilation modes are supported"""
+
         Off = 1
         Away = 2
         Home = 3
@@ -203,6 +200,7 @@ class Nordic(CommonAPI):
             >>> print(f"Efficiency: {nordic_unit.efficiency:2.1%}")
             Efficiency: 76.9%
         """
-        eta = (self.extract_air_temp - self.exhaust_air_temp) / \
-              (self.extract_air_temp - self.outside_air_temp)
+        eta = (self.extract_air_temp - self.exhaust_air_temp) / (
+            self.extract_air_temp - self.outside_air_temp
+        )
         return eta

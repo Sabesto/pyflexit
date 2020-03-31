@@ -22,12 +22,12 @@ def test_init_autodetect(modbus_client):
     assert isinstance(unit, pyflexit.CI66)
 
     # UTF-8: /4
-    modbus_client.REGISTERS[(Regtype.HOLDING, 9070)] = [0]*9 + [12084]
+    modbus_client.REGISTERS[(Regtype.HOLDING, 9070)] = [0] * 9 + [12084]
     unit = pyflexit.aggregate(modbus_client, unit=1)
     assert isinstance(unit, pyflexit.Nordic)
 
     # UTF-8: /5
-    modbus_client.REGISTERS[(Regtype.HOLDING, 9070)] = [0]*9 + [12085]
+    modbus_client.REGISTERS[(Regtype.HOLDING, 9070)] = [0] * 9 + [12085]
     unit = pyflexit.aggregate(modbus_client, unit=1)
     assert isinstance(unit, pyflexit.Nordic)
 
