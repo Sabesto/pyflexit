@@ -9,12 +9,16 @@ from pyflexit.utils import registers_to_values, value_to_registers
 
 
 class Regtype(Enum):
+    """Types of Modbus registers."""
+
     INPUT = 0
     HOLDING = 1
 
 
 @dataclass
 class Register:
+    """Holds information on a Modbus register."""
+
     regtype: Regtype
     addr: int
     data_type: str
@@ -23,19 +27,20 @@ class Register:
 
     @property
     def count(self) -> int:
+        """The number of 16-bit registers needed to store the data."""
         return math.ceil(struct.calcsize(self.data_type) / 2)
 
 
 class CommonAPI:
-    """This is a base class to be inherited by the different Flexit model
-    classes. This ensures compatibility across different Flexit models. You
+    """Base class to be inherited by the different Flexit model classes.
+
+    This ensures compatibility across different Flexit models. You
     will not be using this class directly, it is inherited by the CI66 and
     Nordic classes.
     """
 
     class VentMode(Enum):
-        """Each subclass must define their own ventilation modes with the
-        proper names and values"""
+        """Each subclass must define their own ventilation modes."""
 
         pass
 
@@ -55,7 +60,7 @@ class CommonAPI:
 
     @property
     def outside_air_temp(self) -> float:
-        """Get the measured outside air temperature
+        """Get the measured outside air temperature.
 
         Example:
             >>> unit.outside_air_temp
@@ -65,8 +70,9 @@ class CommonAPI:
 
     @property
     def extract_air_temp(self) -> float:
-        """Get the measured air temperature of the air being extracted from
-        the rooms. This corresponds to the average temperature in the house.
+        """Get the measured air temperature of the air being extracted.
+
+        This corresponds to the average temperature in the house.
 
         Example:
             >>> unit.extract_air_temp
@@ -76,8 +82,9 @@ class CommonAPI:
 
     @property
     def supply_air_temp(self) -> float:
-        """Get the measured temperature of the supply air. This is the fresh
-        air that goes into the rooms.
+        """Get the measured temperature of the supply air.
+
+        This is the fresh (possibly heated) air that goes into the rooms.
 
         Example:
             >>> unit.supply_air_temp
@@ -87,8 +94,9 @@ class CommonAPI:
 
     @property
     def air_temp_setpoint(self) -> float:
-        """Temperature setpoint for supply air, the property can be read from
-        and written to.
+        """Get or set the temperature setpoint for supply air.
+
+        This property can be read from and written to.
 
         Example:
             >>> unit.air_temp_setpoint = 21
@@ -99,7 +107,7 @@ class CommonAPI:
 
     @air_temp_setpoint.setter
     def air_temp_setpoint(self, temperature) -> None:
-        """Set the temperature setpoint for supply air"""
+        """Set the temperature setpoint for supply air."""
         self._write_register_value("SetpointSupplyAirTemp", temperature)
 
     @property
@@ -121,8 +129,9 @@ class CommonAPI:
 
     @property
     def vent_mode(self) -> str:
-        """This property can be used to set or get the ventilation
-        mode. Whet getting the current ventilation mode, a string is
+        """This property can be used to set or get the ventilation mode.
+
+        Whet getting the current ventilation mode, a string is
         returned. When setting the ventilation mode, a string is
         expected. The string needs to be one of the values returned by
         the vent_modes property.
@@ -142,6 +151,7 @@ class CommonAPI:
     @vent_mode.setter
     def vent_mode(self, vent_mode: str) -> None:
         """Set new ventilation mode.
+
         Args:
             vent_mode (str): The ventilation mode to change to
         """
@@ -155,8 +165,9 @@ class CommonAPI:
 
     @property
     def heat_exchanger_speed(self) -> float:
-        """Gets the current speed of the rotating heat exchanger, in percent
-        from 0-100.
+        """Get the current speed of the rotating heat exchanger.
+
+        The value is returned in percent from 0-100.
 
         Example:
             >>> unit.heat_exchanger_speed
@@ -166,8 +177,9 @@ class CommonAPI:
 
     @property
     def electric_heater_power(self) -> float:
-        """Gets the current power of the electric heating coil for supply
-        air. In percent from 0-100.
+        """Get the current power of the electric heating coil.
+
+        The value is returned in percent from 0-100.
 
         Example:
             >>> unit.electric_heater_power
@@ -191,7 +203,18 @@ class CommonAPI:
         return self._get_register_value("FilterRunTime")
 
     def _get_register_value(self, register_name: str):
-        """Get value from modbus register(s)"""
+        """Get value from modbus a register.
+
+        Args:
+            register_name (str): The name of a register. Must be a key in the
+                                 dictionary self._REGISTERS.
+
+        Raises:
+            ValueError: If the name is not found in self._REGISTERS.
+
+        Returns:
+            The value of the modbus register.
+        """
         if register_name not in self._REGISTERS.keys():
             raise ValueError(f"Unknown register name: {register_name}")
         register = self._REGISTERS[register_name]
@@ -209,7 +232,12 @@ class CommonAPI:
         return register.post_read(value)
 
     def _write_register_value(self, register_name: str, value) -> None:
-        """Write value to modbus register(s)"""
+        """Write value to modbus register(s).
+
+        Args:
+            register_name (str): The name of the register to write to.
+            value: The value to write to the modbus register.
+        """
         if register_name not in self._REGISTERS.keys():
             raise ValueError(f"Unknown register name: {register_name}")
         register = self._REGISTERS[register_name]

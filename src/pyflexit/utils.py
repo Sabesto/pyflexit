@@ -3,7 +3,7 @@ from typing import Iterable, List
 
 
 def zero_pad(data_format: str) -> str:
-    """Data formats smaller than 16 bits must be zero-padded
+    """Data formats smaller than 16 bits must be zero-padded.
 
     Args:
         data_format (str): A single data format character, see struct module

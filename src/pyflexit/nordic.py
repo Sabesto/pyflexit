@@ -25,9 +25,10 @@ REGISTERS = {
 
 
 class Nordic(CommonAPI):
-    """This class supports the Flexit Nordic models (S2, S3, S4, CL2,
-    CL3 and CL4). The climate centrals EcoNordic W4 and WH4 are also
-    supported, but (currently) only the ventilation part.
+    """Supports the Flexit Nordic models (S2, S3, S4, CL2, CL3 and CL4).
+
+    The climate centrals EcoNordic W4 and WH4 are also supported, but (currently)
+    only the ventilation part.
 
     Example:
         This is an example for a Flexit Nordic aggregate::
@@ -48,7 +49,7 @@ class Nordic(CommonAPI):
     """
 
     class VentMode(Enum):
-        """For the Nordic series, these ventilation modes are supported"""
+        """For the Nordic series, these ventilation modes are supported."""
 
         Off = 1
         Away = 2
@@ -56,6 +57,12 @@ class Nordic(CommonAPI):
         High = 4
 
     def __init__(self, client, unit: int):
+        """Initialize the object.
+
+        Args:
+            client (modbus client): A Mobus client from pymodbus.client
+            unit (int): The modbus ID of the Flexit unit.
+        """
         super().__init__(client, unit)
         self._REGISTERS = REGISTERS
 
@@ -94,8 +101,7 @@ class Nordic(CommonAPI):
 
     @property
     def home_temp_setpoint(self) -> float:
-        """Get or set the target temperature for supply air when in
-        Home-mode.
+        """Get or set the target temperature for supply air when in Home-mode.
 
         In addition to the ``air_temp_setpoint`` property which depends on
         the current ventilation mode, it is also possible to get or set the
@@ -114,8 +120,7 @@ class Nordic(CommonAPI):
 
     @property
     def away_temp_setpoint(self) -> float:
-        """Get or set the target temperature for supply air when in
-        Away-mode.
+        """Get or set the target temperature for supply air when in Away-mode.
 
         In addition to the ``air_temp_setpoint`` property which depends on
         the current ventilation mode, it is also possible to get or set the
@@ -134,8 +139,9 @@ class Nordic(CommonAPI):
 
     @property
     def exhaust_air_temp(self) -> float:
-        """Get exhaust air temperature. This is the temperature being blown
-        out of the house.
+        """Get exhaust air temperature.
+
+        This is the temperature of the air being blown out of the house.
         """
         return self._get_register_value("ExhaustAirTemp")
 
@@ -188,8 +194,9 @@ class Nordic(CommonAPI):
 
     @property
     def efficiency(self) -> float:
-        """Calculate the efficiency of the heat exchanger. The
-        efficiency for a counterflow heat exchanger is defined by
+        r"""Calculate the efficiency of the heat exchanger.
+
+        The efficiency for a counterflow heat exchanger is defined by
 
         .. math::
             \\eta = \\frac{T_{hot,in} - T_{hot,out}}{T_{hot,in} - T_{cold,in}}

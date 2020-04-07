@@ -41,8 +41,9 @@ REGISTERS = {
 
 
 class CI66(CommonAPI):
-    """This class supports the Flexit CI66 modbus adapter, which is
-    compatible with the K2, UNI 2, UNI 3 and UNI 4 aggregates.
+    """This class supports the Flexit CI66 modbus adapter.
+
+    The CI66 adapter is compatible with the K2, UNI 2, UNI 3 and UNI 4 aggregates.
 
     Example:
         This is an example for a Flexit CI66 adapter::
@@ -63,12 +64,20 @@ class CI66(CommonAPI):
     """
 
     class VentMode(Enum):
+        """Fan modes of the CI66."""
+
         Off = 0
         Min = 1
         Normal = 2
         Max = 3
 
     def __init__(self, client, unit: int):
+        """Initialize a CI66 object.
+
+        Args:
+            client (mobus client): A configured modbus client.
+            unit (int): The modbus ID of your CI66 adapter.
+        """
         super().__init__(client, unit)
         self._REGISTERS = REGISTERS
 
@@ -83,8 +92,7 @@ class CI66(CommonAPI):
 
     @property
     def replace_filter_alarm(self) -> bool:
-        """
-        Status of filter change alarm
+        """Status of filter change alarm.
 
         Returns:
             ``True`` when it's time to change the filter, otherwise ``False``.

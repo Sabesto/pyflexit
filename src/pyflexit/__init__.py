@@ -1,3 +1,5 @@
+"""Monitor and control a Flexit ventilation aggregate via Modbus."""
+
 import struct
 from typing import Optional
 
@@ -6,8 +8,7 @@ from pyflexit.nordic import Nordic
 
 
 def autodetect_flexit_model(client, unit):
-    """
-    Automatically detect what Flexit model we're talking to.
+    """Automatically detect what Flexit model we're talking to.
 
     Args:
         client: A modbus client
@@ -33,7 +34,7 @@ def autodetect_flexit_model(client, unit):
 
 
 def aggregate(client, unit: int, model: Optional[str] = None):
-    """Returns the appropriate class, depending on the model
+    """Returns the appropriate class, depending on the model.
 
     Args:
         client: A modbus client
